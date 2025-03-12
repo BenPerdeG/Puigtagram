@@ -34,7 +34,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingHorizontal="90px"
-            android:backgroundTint="@color/black"
+            android:backgroundTint="@color/green"
             app:cornerRadius="16dp"
             android:layout_gravity="center"
             />
@@ -47,7 +47,7 @@
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_margin="48dp"
-            android:background="@color/purple_200"/>
+            android:background="@color/green"/>
     </LinearLayout>
     <ProgressBar
         android:id="@+id/signInProgressBar"

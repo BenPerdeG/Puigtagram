@@ -14,6 +14,7 @@ import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -112,7 +113,7 @@ public class HomeFragment extends Fragment {
 
         ImageView authorPhotoImageView, likeImageView, mediaImageView;
         TextView authorTextView, contentTextView, numLikesTextView, timeTextView;
-
+        Button deleteButton;
 
         PostViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -123,6 +124,7 @@ public class HomeFragment extends Fragment {
             contentTextView = itemView.findViewById(R.id.contentTextView);
             timeTextView = itemView.findViewById(R.id.timeTextView);
             numLikesTextView = itemView.findViewById(R.id.numLikesTextView);
+            deleteButton = itemView.findViewById(R.id.deleteButton);
         }
     }
 
@@ -148,6 +150,40 @@ public class HomeFragment extends Fragment {
             }
             holder.authorTextView.setText(post.get("author").toString());
             holder.contentTextView.setText(post.get("content").toString());
+
+            String postAuthorId = post.get("uid").toString();
+
+            // Mostrar el botón de eliminación solo si el post pertenece al usuario actual
+            if (postAuthorId.equals(userId)) {
+                holder.deleteButton.setVisibility(View.VISIBLE);
+                holder.deleteButton.setOnClickListener(view -> {
+                    borrarPost(post.get("$id").toString());
+                });
+            } else {
+                holder.deleteButton.setVisibility(View.GONE);
+            }
+
+
+            TextView hashtagsTextView = holder.itemView.findViewById(R.id.hashtagsTextView);
+            TextView mencionesTextView = holder.itemView.findViewById(R.id.mencionesTextView);
+
+            List<String> hashtags = (List<String>) post.get("hashtags");
+            List<String> menciones = (List<String>) post.get("menciones");
+
+            if (hashtags != null && !hashtags.isEmpty()) {
+                hashtagsTextView.setText("#" + String.join(", #", hashtags));
+                hashtagsTextView.setVisibility(View.VISIBLE);
+            } else {
+                hashtagsTextView.setVisibility(View.GONE);
+            }
+
+            if (menciones != null && !menciones.isEmpty()) {
+                mencionesTextView.setText("@" + String.join(", @", menciones));
+                mencionesTextView.setVisibility(View.VISIBLE);
+            } else {
+                mencionesTextView.setVisibility(View.GONE);
+            }
+
 
             //Fecha y Hora
             SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm");
@@ -250,5 +286,21 @@ public class HomeFragment extends Fragment {
         } catch (AppwriteException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    void borrarPost(String postId) {
+        Databases databases = new Databases(client);
+        databases.deleteDocument(
+                getString(R.string.APPWRITE_DATABASE_ID),
+                getString(R.string.APPWRITE_POSTS_COLLECTION_ID),
+                postId,
+                new CoroutineCallback<>((result, error) -> {
+                    if (error != null) {
+                        Snackbar.make(requireView(), "Error al eliminar el post: " + error.toString(), Snackbar.LENGTH_LONG).show();
+                    } else {
+                        obtenerPosts(); // Refrescar la lista de posts
+                    }
+                })
+        );
     }
 }
