@@ -17,5 +17,12 @@
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin"
         app:srcCompat="@drawable/pen" />
+    <SearchView
+        android:id="@+id/searchView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:queryHint="Buscar por hashtags, usuarios o menciones..."
+        android:iconifiedByDefault="false"
+        android:layout_margin="16dp"/>
 </FrameLayout>
 

@@ -28,7 +28,7 @@
         android:layout_height="wrap_content"
         android:paddingHorizontal="40px"
         android:text="Create account"
-        android:backgroundTint="@color/black"
+        android:backgroundTint="@color/green"
         app:cornerRadius="16dp"
         android:layout_gravity="center" />
 
