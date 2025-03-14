@@ -16,6 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.SearchView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
@@ -65,6 +66,25 @@ public class HomeFragment extends Fragment {
             savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         navController = Navigation.findNavController(view);
+
+        SearchView searchView = view.findViewById(R.id.searchView);
+
+        // Configura el listener para el SearchView
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                // Realiza la búsqueda cuando el usuario presiona "Enter"
+                buscarPosts(query);
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                // Realiza la búsqueda mientras el usuario escribe
+                buscarPosts(newText);
+                return true;
+            }
+        });
 
         NavigationView navigationView = view.getRootView().findViewById(R.id.nav_view);
         View header = navigationView.getHeaderView(0);
@@ -267,19 +287,20 @@ public class HomeFragment extends Fragment {
     void obtenerPosts() {
         Databases databases = new Databases(client);
         Handler mainHandler = new Handler(Looper.getMainLooper());
+
         try {
             databases.listDocuments(
                     getString(R.string.APPWRITE_DATABASE_ID), // databaseId
                     getString(R.string.APPWRITE_POSTS_COLLECTION_ID), // collectionId
-                    Arrays.asList(Query.Companion.orderDesc("time"),
-                    Query.Companion.limit(50)),    // queries (optional)
+                    Arrays.asList(
+                            Query.Companion.orderDesc("time"),
+                            Query.Companion.limit(50)
+                    ), // queries (optional)
                     new CoroutineCallback<>((result, error) -> {
                         if (error != null) {
-                            Snackbar.make(requireView(), "Error al obtener los posts: "
-                                    + error.toString(), Snackbar.LENGTH_LONG).show();
+                            Snackbar.make(requireView(), "Error al obtener los posts: " + error.toString(), Snackbar.LENGTH_LONG).show();
                             return;
                         }
-                        System.out.println(result.toString());
                         mainHandler.post(() -> adapter.establecerLista(result));
                     })
             );
@@ -302,5 +323,30 @@ public class HomeFragment extends Fragment {
                     }
                 })
         );
+    }
+    void buscarPosts(String query) {
+        Databases databases = new Databases(client);
+        Handler mainHandler = new Handler(Looper.getMainLooper());
+
+        try {
+            databases.listDocuments(
+                    getString(R.string.APPWRITE_DATABASE_ID), // databaseId
+                    getString(R.string.APPWRITE_POSTS_COLLECTION_ID), // collectionId
+                    Arrays.asList(
+                            Query.Companion.orderDesc("time"),
+                            Query.Companion.limit(50),
+                            Query.Companion.search("content", query) // Búsqueda por contenido
+                    ), // queries (optional)
+                    new CoroutineCallback<>((result, error) -> {
+                        if (error != null) {
+                            Snackbar.make(requireView(), "Error al buscar los posts: " + error.toString(), Snackbar.LENGTH_LONG).show();
+                            return;
+                        }
+                        mainHandler.post(() -> adapter.establecerLista(result));
+                    })
+            );
+        } catch (AppwriteException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
